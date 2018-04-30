@@ -27,7 +27,7 @@
         "variables": {
             "baseUri": "https://raw.githubusercontent.com/opsgility/migrate-db-azure-lab/master/",
             "ADInstallScript":"https://raw.githubusercontent.com/opsgility/introduction-to-nested-templates/master/script-extensions/deploy-ad.ps1",
-            "ADJoinScript":"https://raw.githubusercontent.com/opsgility/introduction-to-nested-templates/master/script-extensions/domain-join.ps1"
+            "ADJoinScript":"https://raw.githubusercontent.com/opsgility/migrate-db-azure-lab/master/script-extensions/domain-join.ps1"
         },
         "resources": [
             {
