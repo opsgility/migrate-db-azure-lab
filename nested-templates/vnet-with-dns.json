@@ -14,7 +14,6 @@
     "LitwareVNETSubnet2Name": "Identity",
     "LitwareVNETSubnet2Prefix": "10.0.2.0/24"
   },
-
   "resources": [
     {
       "name": "LitwareVNET",
@@ -60,5 +59,4 @@
     }
   ],
   "outputs": {}
-
-  }
+}
