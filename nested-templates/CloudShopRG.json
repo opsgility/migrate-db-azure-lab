@@ -226,32 +226,34 @@
               ],
               "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('CloudShopInstallScriptFileName'), ' ', variables('CloudShopInstallScriptParameters'))]"
             }
-          }
-        },
-        {
-          "name": "JoinAD",
-          "type": "extensions",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2016-03-30",
-          "dependsOn": [
-            "[resourceId('Microsoft.Compute/virtualMachines', parameters('WebVMName'))]",
-            "InstallCloudShop"
-          ],
-          "tags": {
-            "displayName": "JoinAD"
           },
-          "properties": {
-            "publisher": "Microsoft.Compute",
-            "type": "CustomScriptExtension",
-            "typeHandlerVersion": "1.9",
-            "autoUpgradeMinorVersion": true,
-            "settings": {
-              "fileUris": [
-                "[concat(parameters('ADJoinScriptUrl'))]"
+          "resources": [
+            {
+              "name": "JoinAD",
+              "type": "extensions",
+              "location": "[resourceGroup().location]",
+              "apiVersion": "2016-03-30",
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('WebVMName'))]",
+                "InstallCloudShop"
               ],
-              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('VM1scriptFileName'), ' ', variables('VM1scriptParameters'))]"
+              "tags": {
+                "displayName": "JoinAD"
+              },
+              "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                  "fileUris": [
+                    "[concat(parameters('ADJoinScriptUrl'))]"
+                  ],
+                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('VM1scriptFileName'), ' ', variables('VM1scriptParameters'))]"
+                }
+              }
             }
-          }
+          ]
         }
       ]
     },
