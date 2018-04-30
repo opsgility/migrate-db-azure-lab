@@ -79,7 +79,8 @@
       "type": "string",
       "metadata": {
         "description": "Script to execute to join Active Directory"
-      }
+      },
+      "defaultValue": "https://raw.githubusercontent.com/opsgility/introduction-to-nested-templates/master/script-extensions/domain-join.ps1"
     }
   },
   "variables": {
