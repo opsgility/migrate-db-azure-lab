@@ -1,0 +1,64 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "VNETNAME": "LitwareVNET",
+    "DNSIP": "10.0.2.4",
+    "LitwareVNETPrefix": "10.0.0.0/16",
+    "LitwareVNETSubnet1Name": "Apps",
+    "LitwareVNETSubnet1Prefix": "10.0.0.0/24",
+    "LitwareVNETSubnet3Name": "Data",
+    "LitwareVNETSubnet3Prefix": "10.0.1.0/24",
+    "LitwareVNETSubnet2Name": "Identity",
+    "LitwareVNETSubnet2Prefix": "10.0.2.0/24"
+  },
+
+  "resources": [
+    {
+      "name": "LitwareVNET",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-09-01",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "LitwareVNET"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('LitwareVNETPrefix')]"
+          ]
+        },
+        "dhcpOptions": {
+          "dnsServers": [
+            "[variables('DNSIP')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('LitwareVNETSubnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('LitwareVNETSubnet1Prefix')]"
+            }
+          },
+          {
+            "name": "[variables('LitwareVNETSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('LitwareVNETSubnet2Prefix')]"
+            }
+          },
+          {
+            "name": "[variables('LitwareVNETSubnet3Name')]",
+            "properties": {
+              "addressPrefix": "[variables('LitwareVNETSubnet3Prefix')]"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
+
+  }
