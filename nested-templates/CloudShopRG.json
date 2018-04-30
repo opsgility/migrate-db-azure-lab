@@ -245,6 +245,9 @@
                 "type": "CustomScriptExtension",
                 "typeHandlerVersion": "1.9",
                 "autoUpgradeMinorVersion": true,
+                "debugSetting": {
+                  "detailLevel": "requestContent, responseContent"
+                },
                 "settings": {
                   "fileUris": [
                     "[concat(parameters('ADJoinScriptUrl'))]"
