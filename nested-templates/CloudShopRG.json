@@ -23,6 +23,13 @@
         "description": "The password for the administrator account of the new VM and domain"
       }
     },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "opsaaddemo.local",
+      "metadata": {
+        "description": "The FQDN of the Active Directory Domain to be created"
+      }
+    },
     "CloudShopDownloadUrl": {
       "type": "string",
       "metadata": {
@@ -67,8 +74,13 @@
       "type": "string",
       "defaultValue": "CloudShopSQL",
       "minLength": 1
+    },
+    "ADJoinScriptUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Script to execute to join Active Directory"
+      }
     }
-
   },
   "variables": {
     "VNETSubnet1Name": "Apps",
@@ -99,8 +111,9 @@
     "SQLNicName": "[concat(parameters('SQLVMName'), 'NetworkInterface')]",
     "scriptFolder": ".",
     "webipName": "webip",
-    "sqlipName": "sqlip"
-
+    "sqlipName": "sqlip",
+    "VM1scriptFileName": "domain-join.ps1",
+    "VM1scriptParameters": "[concat(' -domain ', parameters('domainName'), ' -user ', parameters('adminUsername'),' -password ', parameters('adminPassword'))]"
   },
   "resources": [
     {
@@ -212,6 +225,30 @@
                 "[concat(parameters('CloudShopInstallscriptUrl'))]"
               ],
               "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('CloudShopInstallScriptFileName'), ' ', variables('CloudShopInstallScriptParameters'))]"
+            }
+          }
+        },
+        {
+          "name": "JoinAD",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "InstallCloudShop"
+          ],
+          "tags": {
+            "displayName": "InstallAD"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": [
+                "[concat(parameters('ADJoinScriptUrl'))]"
+              ],
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('VM1scriptFileName'), ' ', variables('VM1scriptParameters'))]"
             }
           }
         }

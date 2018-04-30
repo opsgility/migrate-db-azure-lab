@@ -99,6 +99,14 @@
                     "templateLink": {
                         "uri": "[concat(variables('baseUri'), '/', 'nested-templates/CloudShopRG.json')]",
                         "contentVersion": "1.0.0.0"
+                    },
+                    "parameters": {
+                        "domainName": {
+                            "value": "[parameters('domainName')]"
+                        },
+                        "ADJoinScriptUrl": {
+                            "value": "[variables('ADJoinScript')]"
+                        }
                     }
                 }
             }
