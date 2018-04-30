@@ -103,9 +103,6 @@
                     "parameters": {
                         "domainName": {
                             "value": "[parameters('domainName')]"
-                        },
-                        "ADJoinScriptUrl": {
-                            "value": "[variables('ADJoinScript')]"
                         }
                     }
                 }
