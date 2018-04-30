@@ -234,10 +234,11 @@
           "location": "[resourceGroup().location]",
           "apiVersion": "2016-03-30",
           "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('WebVMName'))]",
             "InstallCloudShop"
           ],
           "tags": {
-            "displayName": "InstallAD"
+            "displayName": "JoinAD"
           },
           "properties": {
             "publisher": "Microsoft.Compute",
