@@ -236,8 +236,8 @@
           "resources": [
             {
               "apiVersion": "2015-06-15",
-              "type": "Microsoft.Compute/virtualMachines/extensions",
-              "name": "WebVMJoinDomain",
+              "type": "extensions",
+              "name": "DomainJoinWebVM",
               "location": "[resourceGroup().location]",
               "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines', parameters('WebVMName'))]",
