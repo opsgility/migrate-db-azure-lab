@@ -119,7 +119,7 @@
     "WindowsOSVersion": "2016-Datacenter",
     "WindowsImagePublisher": "MicrosoftWindowsServer",
     "WindowsImageOffer": "WindowsServer",
-    "SQLSKU": "Web",
+    "SQLSKU": "Standard",
     "SQLImagePublisher": "MicrosoftSQLServer",
     "WebOSDiskName": "WebOSDisk",
     "WebVM-2OSDiskName": "WebOSDisk2",
