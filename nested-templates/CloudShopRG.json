@@ -115,7 +115,7 @@
     "CloudShopInstallScriptParameters": "[concat(' -user ', parameters('adminUsername'), ' -password ', parameters('adminPassword'), ' -cloudshopurl ', parameters('CloudShopDownloadUrl'))]",
     "CloudShopDBInstallScriptFileName": "deploy-cloudshop-db.ps1",
     "CloudShopDBInstallScriptParameters": "[concat(' -user ', parameters('adminUsername'), ' -password ', parameters('adminPassword'), ' -dbsource ', parameters('CloudShopDBDownloadUrl'), ' -sqlConfigUrl ', parameters('SQLConfigscriptUrl'))]",
-    "vmstorageName": "[concat('mdbdisks', toLower(parameters('environmentName')), uniqueString(resourceGroup().id))]",
+    "vmstorageName": "[concat('cshp', toLower(parameters('environmentName')), uniqueString(resourceGroup().id))]",
     "WindowsOSVersion": "2016-Datacenter",
     "WindowsImagePublisher": "MicrosoftWindowsServer",
     "WindowsImageOffer": "WindowsServer",
