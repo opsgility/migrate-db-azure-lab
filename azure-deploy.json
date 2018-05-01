@@ -88,7 +88,7 @@
                 }
             },
             {
-                "name": "CloudShop",
+                "name": "CloudShopOnPrem",
                 "type": "Microsoft.Resources/deployments",
                 "apiVersion": "2016-09-01",
                 "dependsOn": [
@@ -103,6 +103,41 @@
                     "parameters": {
                         "domainName": {
                             "value": "[parameters('domainName')]"
+                        },
+                        "WebVMName": {
+                            "value": "CloudShopWebOP"
+                        },
+                        "SQLVMName": {
+                            "value": "CloudShopSQLOP"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "CloudShopCloud",
+                "type": "Microsoft.Resources/deployments",
+                "apiVersion": "2016-09-01",
+                "dependsOn": [
+                    "Microsoft.Resources/deployments/VirtualNetworkWithDNS"
+                ],
+                "properties": {
+                    "mode": "Incremental",
+                    "templateLink": {
+                        "uri": "[concat(variables('baseUri'), '/', 'nested-templates/CloudShopRG.json')]",
+                        "contentVersion": "1.0.0.0"
+                    },
+                    "parameters": {
+                        "domainName": {
+                            "value": "[parameters('domainName')]"
+                        },
+                        "WebVMName": {
+                            "value": "CloudShopWebAZ"
+                        },
+                        "SQLVMName": {
+                            "value": "CloudShopSQLAZ"
+                        },
+                        "SQLImageOffer": {
+                            "value": "SQL2016SP1-WS2016"
                         }
                     }
                 }
