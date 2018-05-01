@@ -49,14 +49,14 @@
       "metadata": {
         "description": "script to execute"
       },
-      "defaultValue": "https://raw.githubusercontent.com/opsgility/cw-building-resilient-iaas-architecture/master/script-extensions/deploy-cloudshop.ps1"
+      "defaultValue": "https://raw.githubusercontent.com/opsgility/migrate-db-azure-lab/master/script-extensions/deploy-cloudshop.ps1"
     },
     "CloudShopDBInstallscriptUrl": {
       "type": "string",
       "metadata": {
         "description": "script to execute"
       },
-      "defaultValue": "https://raw.githubusercontent.com/opsgility/cw-building-resilient-iaas-architecture/master/script-extensions/deploy-cloudshop-db.ps1"
+      "defaultValue": "https://raw.githubusercontent.com/opsgility/migrate-db-azure-lab/master/script-extensions/deploy-cloudshop-db.ps1"
     },
     "SQLConfigscriptUrl": {
       "type": "string",
