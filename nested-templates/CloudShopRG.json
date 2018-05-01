@@ -125,8 +125,8 @@
     "SQLStorageAccountContainerName": "vhds",
     "SQLNicName": "[concat(parameters('SQLVMName'), 'NetworkInterface')]",
     "scriptFolder": ".",
-    "webipName": "webip",
-    "sqlipName": "sqlip"
+    "webipName": "[concat(parameters('WebVMName'), 'PublicIP')]",
+    "sqlipName": "[concat(parameters('SQLVMName'), 'PublicIP')]"
   },
   "resources": [
     {
@@ -402,7 +402,7 @@
       "apiVersion": "2016-03-30",
       "dependsOn": [],
       "tags": {
-        "displayName": "webip"
+        "displayName": "[concat(parameters('WebVMName'), 'PublicIP')]"
       },
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
@@ -415,7 +415,7 @@
       "apiVersion": "2016-03-30",
       "dependsOn": [],
       "tags": {
-        "displayName": "sqlip"
+        "displayName": "[concat(parameters('SQLVMName'), 'PublicIP')]"
       },
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
