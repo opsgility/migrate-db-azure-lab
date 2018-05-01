@@ -75,6 +75,14 @@
       "defaultValue": "CloudShopSQL",
       "minLength": 1
     },
+    "SQLImageOffer": {
+      "type": "string",
+      "defaultValue": "SQL2014SP2-WS2012R2",
+      "allowedValues": [
+        "SQL2014SP2-WS2012R2",
+        "SQL2016SP1-WS2016"
+      ]
+    },
     "ouPath": {
       "type": "string",
       "defaultValue": "",
@@ -105,7 +113,6 @@
     "WindowsImageOffer": "WindowsServer",
     "SQLSKU": "Web",
     "SQLImagePublisher": "MicrosoftSQLServer",
-    "SQLImageOffer": "SQL2014SP2-WS2012R2",
     "WebOSDiskName": "WebOSDisk",
     "WebVM-2OSDiskName": "WebOSDisk2",
     "WebVmSize": "Standard_DS1_v2",
@@ -340,7 +347,7 @@
         "storageProfile": {
           "imageReference": {
             "publisher": "[variables('SQLImagePublisher')]",
-            "offer": "[variables('SQLImageOffer')]",
+            "offer": "[parameters('SQLImageOffer')]",
             "sku": "[variables('SQLSKU')]",
             "version": "latest"
           },
