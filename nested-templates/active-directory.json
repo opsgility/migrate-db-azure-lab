@@ -41,6 +41,10 @@
         "description": "Script to execute to install Active Directory"
       }
     },
+    "labName":{
+      "type": "string",
+      "defaultValue": "migrate-db-azure-lab"
+    },
     "ADVMWindowsOSVersion": {
       "type": "string",
       "defaultValue": "2016-Datacenter",
@@ -71,7 +75,7 @@
     "ADVMNicName": "[concat(parameters('ADVMName'), 'NetworkInterface')]",
     "scriptFolder": ".",
     "VM1scriptFileName": "deploy-ad.ps1",
-    "VM1scriptParameters": "[concat(' -domain ', parameters('domainName'), ' -password ', parameters('adminPassword'))]",
+    "VM1scriptParameters": "[concat(' -domain ', parameters('domainName'), ' -password ', parameters('adminPassword'),' -labName ', parameters('labName'))]",
     "DomainJoinscriptFileName": "domain-join.ps1",
     "DomainJoinscriptParameters": "[concat(' -domain ', parameters('domainName'), ' -user ', parameters('adminUsername'), ' -password ', parameters('adminPassword'))]",
     "advmipName": "[concat(parameters('ADVMName'), 'PublicIP')]"
