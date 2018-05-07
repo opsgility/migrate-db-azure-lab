@@ -1,0 +1,434 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmstorageType": {
+      "type": "string",
+      "defaultValue": "Premium_LRS",
+      "allowedValues": [
+        "Premium_LRS"
+      ]
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "demouser",
+      "metadata": {
+        "description": "The name of the administrator account of the new VM"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "demo@pass123",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and domain"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "opsaaddemo.local",
+      "metadata": {
+        "description": "The FQDN of the Active Directory Domain to be created"
+      }
+    },
+    "CloudShopDownloadUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Zip that contains cloud shop sample"
+      },
+      "defaultValue": "https://cloudworkshop.blob.core.windows.net/building-resilient-iaas-architecture/CloudShop.zip"
+    },
+    "CloudShopDBDownloadUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Zip that contains Adventure works DB sample"
+      },
+      "defaultValue": "https://cloudworkshop.blob.core.windows.net/building-resilient-iaas-architecture/AdventureWorks2012.bak"
+    },
+    "CloudShopInstallscriptUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "script to execute"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/opsgility/migrate-db-azure-lab/master/script-extensions/deploy-cloudshop.ps1"
+    },
+    "CloudShopDBInstallscriptUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "script to execute"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/opsgility/migrate-db-azure-lab/master/script-extensions/deploy-cloudshop-db.ps1"
+    },
+    "SQLConfigscriptUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "script to execute"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/opsgility/lab-support-public/master/cloud-shop-single-web-server/configure-sql.ps1"
+    },
+    "WebVMName": {
+      "type": "string",
+      "defaultValue": "CloudShopWeb",
+      "minLength": 1
+    },
+    "SQLVMName": {
+      "type": "string",
+      "defaultValue": "CloudShopSQL",
+      "minLength": 1
+    },
+    "SQLImageOffer": {
+      "type": "string",
+      "defaultValue": "SQL2014SP2-WS2012R2",
+      "allowedValues": [
+        "SQL2014SP2-WS2012R2",
+        "SQL2016SP1-WS2016"
+      ]
+    },
+    "ouPath": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: OU=testOU;DC=domain;DC=Domain;DC=com"
+      }
+    },
+    "domainJoinOptions": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "cloud",
+      "allowedValues": [
+        "cloud",
+        "onprem"
+      ]
+    }
+  },
+  "variables": {
+    "VNETSubnet1Name": "Apps",
+    "VNETSubnet2Name": "Data",
+    "VNETNAME": "LitwareVNET",
+    "VnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('VNETNAME'))]",
+    "CloudShopInstallScriptFileName": "deploy-cloudshop.ps1",
+    "CloudShopInstallScriptParameters": "[concat(' -user ', parameters('adminUsername'), ' -password ', parameters('adminPassword'), ' -cloudshopurl ', parameters('CloudShopDownloadUrl'))]",
+    "CloudShopDBInstallScriptFileName": "deploy-cloudshop-db.ps1",
+    "CloudShopDBInstallScriptParameters": "[concat(' -user ', parameters('adminUsername'), ' -password ', parameters('adminPassword'), ' -dbsource ', parameters('CloudShopDBDownloadUrl'), ' -sqlConfigUrl ', parameters('SQLConfigscriptUrl'))]",
+    "vmstorageName": "[concat('cshp', toLower(parameters('environmentName')), uniqueString(resourceGroup().id))]",
+    "WindowsOSVersion": "2016-Datacenter",
+    "WindowsImagePublisher": "MicrosoftWindowsServer",
+    "WindowsImageOffer": "WindowsServer",
+    "SQLSKU": "Standard",
+    "SQLImagePublisher": "MicrosoftSQLServer",
+    "WebOSDiskName": "WebOSDisk",
+    "WebVM-2OSDiskName": "WebOSDisk2",
+    "WebVmSize": "Standard_DS1_v2",
+    "WebSubnetRef": "[concat(variables('VnetID'), '/subnets/', variables('VNETSubnet1Name'))]",
+    "WebStorageAccountContainerName": "vhds",
+    "WebNicName": "[concat(parameters('WebVMName'), 'NetworkInterface')]",
+    "SQLOSDiskName": "SQLOSDisk2",
+    "SQLVmSize": "Standard_DS1_v2",
+    "SQLSubnetRef": "[concat(variables('VnetID'), '/subnets/', variables('VNETSubnet2Name'))]",
+    "SQLStorageAccountContainerName": "vhds",
+    "SQLNicName": "[concat(parameters('SQLVMName'), 'NetworkInterface')]",
+    "scriptFolder": ".",
+    "webipName": "[concat(parameters('WebVMName'), 'PublicIP')]",
+    "sqlipName": "[concat(parameters('SQLVMName'), 'PublicIP')]"
+  },
+  "resources": [
+    {
+      "name": "[variables('vmstorageName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-06-01",
+      "sku": {
+        "name": "[parameters('vmstorageType')]"
+      },
+      "tags": {
+        "displayName": "CloudShopStorage"
+      },
+      "dependsOn": [],
+      "kind": "Storage"
+    },
+    {
+      "name": "[variables('WebNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('webipName'))]"
+      ],
+      "tags": {
+        "displayName": "WebNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('WebSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('webipName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('WebVMName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('vmstorageName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('WebNicName'))]"
+      ],
+      "tags": {
+        "displayName": "WebVM-1"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('WebVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('WebVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('WindowsImagePublisher')]",
+            "offer": "[variables('WindowsImageOffer')]",
+            "sku": "[variables('WindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "WebOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vmstorageName')), '2017-06-01').primaryEndpoints.blob, variables('WebStorageAccountContainerName'), '/', variables('WebOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WebNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "name": "InstallCloudShop",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('WebVMName'))]"
+          ],
+          "tags": {
+            "displayName": "InstallCloudShop"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.4",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": [
+                "[concat(parameters('CloudShopInstallscriptUrl'))]"
+              ],
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('CloudShopInstallScriptFileName'), ' ', variables('CloudShopInstallScriptParameters'))]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('WebVMName'), '/', 'DomainJoinWebVM')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('WebVMName'))]",
+        "InstallCloudShop"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "[parameters('domainName')]",
+          "OUPath": "[parameters('ouPath')]",
+          "User": "[concat(parameters('domainName'), '\\', parameters('adminUsername'))]",
+          "Restart": "true",
+          "Options": "[parameters('domainJoinOptions')]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('adminPassword')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('SQLVMName'), '/', 'DomainJoinSQLVM')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('SQLVMName'))]",
+        "InstallCloudShopDB"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "[parameters('domainName')]",
+          "OUPath": "[parameters('ouPath')]",
+          "User": "[concat(parameters('domainName'), '\\', parameters('adminUsername'))]",
+          "Restart": "true",
+          "Options": "[parameters('domainJoinOptions')]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('adminPassword')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('SQLNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('SQLipName'))]"
+      ],
+      "tags": {
+        "displayName": "SQLNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('SQLSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('sqlipName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('SQLVMName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('vmstorageName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('SQLNicName'))]"
+      ],
+      "tags": {
+        "displayName": "ContosoSQL1"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('SQLVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('SQLVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('SQLImagePublisher')]",
+            "offer": "[parameters('SQLImageOffer')]",
+            "sku": "[variables('SQLSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "SQLOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vmstorageName')), '2017-06-01').primaryEndpoints.blob, variables('SQLStorageAccountContainerName'), '/', variables('SQLOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('SQLNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "name": "InstallCloudShopDB",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('SQLVMName'))]"
+          ],
+          "tags": {
+            "displayName": "InstallCloudShopDB"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.4",
+            "autoUpgradeMinorVersion": false,
+            "settings": {
+              "fileUris": [
+                "[concat(parameters('CloudShopDBInstallscriptUrl'))]"
+              ],
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFolder'), '/', variables('CloudShopDBInstallScriptFileName'), ' ', variables('CloudShopDBInstallScriptParameters'))]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('webipName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "[concat(parameters('WebVMName'), 'PublicIP')]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "name": "[variables('sqlipName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "[concat(parameters('SQLVMName'), 'PublicIP')]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    }
+  ],
+  "outputs": {}
+}
