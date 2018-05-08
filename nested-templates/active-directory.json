@@ -43,7 +43,7 @@
     },
     "labName":{
       "type": "string",
-      "defaultValue": "migrate-db-azure-lab"
+      "defaultValue": "migrating-database-workloads"
     },
     "ADVMWindowsOSVersion": {
       "type": "string",
